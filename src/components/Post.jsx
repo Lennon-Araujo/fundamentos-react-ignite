@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Avatar } from './Avatar';
 import { Comment } from './Comment';
 import PropTypes from 'prop-types';
@@ -5,7 +6,12 @@ import { format, formatDistanceToNow } from 'date-fns';
 import ptBR from 'date-fns/locale/pt-BR';
 
 import styles from './Post.module.css';
+
 export function Post({author, content, publishedAt}) {
+  const [comments, setComments] = useState([])
+
+  const [newCommentText, setNewCommentText] = useState('')
+
   const publishedAtFormatted = format(publishedAt, "dd 'de' LLLL 'às' HH:mm'h'", {
     locale: ptBR
   })
@@ -14,6 +20,17 @@ export function Post({author, content, publishedAt}) {
     locale: ptBR,
     addSuffix: true
   })
+
+  function handleCreateNewComment(e) {
+    e.preventDefault();
+
+    setComments([...comments, newCommentText])
+    setNewCommentText('')
+  }
+
+  function handleNewCommentChange(e) {
+    setNewCommentText(e.target.value)
+  }
 
   return (
     <article className={styles.post}>
@@ -30,25 +47,27 @@ export function Post({author, content, publishedAt}) {
       </header>
 
       <div className={styles.content}>
-        {content.map((cont, index) => {
+        {content.map((cont) => {
           if(cont.type === 'paragraph') {
-            return <p key={index}>{cont.content}</p>
+            return <p key={cont.content}>{cont.content}</p>
           }
 
           if(cont.type === 'link') {
-            return <a key={index}><p>{cont.content}</p></a>
+            return <a key={cont.content}><p>{cont.content}</p></a>
           }
 
           if(cont.type === 'hashtag') {
-            return <a key={index}>{cont.content + ' '}</a>
+            return <a key={cont.content}>{cont.content + ' '}</a>
           }
         })}
       </div>
 
-      <form className={styles.commentForm}>
+      <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
         <strong>Deixe seu feedback</strong>
         <textarea
+          onChange={handleNewCommentChange}
           placeholder='Deixe um comentário'
+          value={newCommentText}
         />
         <footer>
           <button type='submit'>Publicar</button>
@@ -56,9 +75,9 @@ export function Post({author, content, publishedAt}) {
       </form>
 
       <div className={styles.commentList}>
-        <Comment />
-        <Comment />
-        <Comment />  
+        {comments.map((comment) => {
+          return <Comment key={comment} content={comment} />
+        })}
       </div>
         
     </article>
